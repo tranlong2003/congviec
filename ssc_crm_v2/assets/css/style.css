@@ -1,0 +1,380 @@
+/* ==========================================
+   1. ĐỊNH NGHĨA BIẾN MÀU (CSS VARIABLES)
+   ========================================== */
+:root, [data-theme="dark"] {
+    --bg-main: #0c0e12;
+    --bg-card: #11141b;
+    --border-color: #1f2633;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-heading: #ffffff;
+    --accent-purple: #7c3aed;
+    --accent-purple-hover: rgba(124, 58, 237, 0.15);
+    
+    /* Màu sắc chỉ số */
+    --color-data: #10b981;
+    --color-call: #3b82f6;
+    --color-mt5: #8b5cf6;
+    --color-revenue: #f59e0b;
+    --color-danger: #ef4444;
+    
+    /* Hiệu ứng đổ bóng phát sáng (Neon Glow) */
+    --shadow-glow: 0 0 15px rgba(124, 58, 237, 0.2);
+}
+
+[data-theme="light"] {
+    --bg-main: #f3f4f6;
+    --bg-card: #ffffff;
+    --border-color: #e5e7eb;
+    --text-main: #1f2937;
+    --text-muted: #4b5563;
+    --text-heading: #111827;
+    --accent-purple: #3b82f6;
+    --accent-purple-hover: rgba(59, 130, 246, 0.1);
+    
+    /* Màu sắc chỉ số */
+    --color-data: #059669;
+    --color-call: #2563eb;
+    --color-mt5: #7c3aed;
+    --color-revenue: #d97706;
+    --color-danger: #dc2626;
+    
+    --shadow-glow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================
+   2. CSS RESET & PHÂN BỐ CỤC CHUẨN
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Header trên cùng */
+header {
+    height: 70px;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-heading);
+    letter-spacing: 0.5px;
+}
+
+.logo span {
+    color: var(--accent-purple);
+    text-shadow: var(--shadow-glow);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Badge Chấm công */
+.attendance-status-badge {
+    color: #ffffff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.btn-attendance {
+    border: none;
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-checkin { background-color: var(--color-data); }
+.btn-checkout { background-color: var(--color-danger); }
+
+.btn-attendance:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* ==========================================
+   3. SIDEBAR MENU BÊN TRÁI
+   ========================================== */
+.wrapper {
+    display: flex;
+    flex: 1;
+}
+
+aside {
+    width: 260px;
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin: 18px 0 8px 10px;
+    font-weight: 700;
+}
+
+.sidebar-title:first-of-type {
+    margin-top: 0;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+}
+
+.menu-link:hover {
+    background-color: var(--border-color);
+    color: var(--text-heading);
+}
+
+.menu-link.active {
+    background-color: var(--accent-purple-hover);
+    color: var(--accent-purple);
+    font-weight: 600;
+    border-left: 3px solid var(--accent-purple);
+    padding-left: 9px;
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.theme-btn {
+    width: 100%;
+    background-color: var(--border-color);
+    color: var(--text-main);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.theme-btn:hover {
+    filter: brightness(1.1);
+}
+
+.logout-btn {
+    text-align: center;
+    color: var(--color-danger);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+}
+
+/* ==========================================
+   4. NỘI DUNG CHÍNH (MAIN) & CARDS
+   ========================================== */
+main {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.welcome-section h1 {
+    font-size: 24px;
+    color: var(--text-heading);
+    margin-bottom: 4px;
+}
+
+.welcome-section p {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Grid hiển thị Cards KPI */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.kpi-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow-glow);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 12px;
+}
+
+.progress-bar {
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+/* Bố cục chia đôi (Split Grid) */
+.split-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.panel {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow-glow);
+}
+
+.panel-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 20px;
+    border-left: 4px solid var(--accent-purple);
+    padding-left: 12px;
+}
+
+/* Biểu đồ doanh số giả lập */
+.chart-mock {
+    height: 160px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 10px;
+}
+
+.chart-bar {
+    width: 32px;
+    background: linear-gradient(180deg, var(--accent-purple) 0%, rgba(124, 58, 237, 0.1) 100%);
+    border-radius: 6px 6px 0 0;
+    transition: height 0.5s ease;
+}
+
+/* Bảng xếp hạng */
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.leaderboard-table td {
+    padding: 12px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(31, 38, 51, 0.2);
+}
+
+.rank {
+    font-weight: 700;
+    color: #fbbf24;
+}
+
+/* ==========================================
+   5. BẢNG DỮ LIỆU & FORM CHUNG
+   ========================================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+select, input {
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+select:focus, input:focus {
+    border-color: var(--accent-purple);
+}
