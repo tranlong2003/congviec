@@ -1,76 +1,128 @@
-<?php
-session_start();
-require_once '../config/database.php';
+<?php 
+require_once '../inc/header.php'; 
+require_once '../inc/sidebar.php'; 
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    die("Bạn không có quyền truy cập trang này!");
-}
+$admin_id = $_SESSION['user_id'];
 
 if (isset($_GET['approve_id'])) {
     $report_id = intval($_GET['approve_id']);
     try {
-        $stmt = $pdo->prepare("UPDATE daily_reports SET status = 'Đã duyệt' WHERE id = ?");
-        $stmt->execute([$report_id]);
-        header("Location: manage_reports.php");
+        $stmt = $pdo->prepare("
+            UPDATE daily_reports r 
+            INNER JOIN users u ON r.user_id = u.id 
+            SET r.status = 'Đã duyệt', r.reject_reason = NULL 
+            WHERE r.id = ? AND u.manager_id = ?
+        ");
+        $stmt->execute([$report_id, $admin_id]);
+        echo "<script>location.href='manage_reports.php';</script>";
         exit;
-    } catch (PDOException $e) {
-        die("Lỗi duyệt báo cáo: " . $e->getMessage());
+    } catch (PDOException $e) { die($e->getMessage()); }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reject_report') {
+    $report_id = intval($_POST['report_id'] ?? 0);
+    $reason = trim($_POST['reject_reason'] ?? 'Số liệu không khớp hoặc thiếu minh bạch!');
+
+    if ($report_id > 0) {
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE daily_reports r 
+                INNER JOIN users u ON r.user_id = u.id 
+                SET r.status = 'Từ chối', r.reject_reason = ? 
+                WHERE r.id = ? AND u.manager_id = ?
+            ");
+            $stmt->execute([$reason, $report_id, $admin_id]);
+            echo "<script>location.href='manage_reports.php';</script>";
+            exit;
+        } catch (PDOException $e) { die($e->getMessage()); }
     }
 }
 
-$reports = $pdo->query("SELECT r.*, u.fullname FROM daily_reports r JOIN users u ON r.user_id = u.id ORDER BY r.report_date DESC")->fetchAll();
+$stmt = $pdo->prepare("
+    SELECT r.*, u.fullname 
+    FROM daily_reports r 
+    INNER JOIN users u ON r.user_id = u.id 
+    WHERE u.manager_id = ?
+    ORDER BY r.report_date DESC
+");
+$stmt->execute([$admin_id]);
+$reports = $stmt->fetchAll();
 ?>
-<!DOCTYPE html>
-<html lang="vi" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <title>Duyệt báo cáo - SSC Fintech CRM</title>
-    <style>
-        :root, [data-theme="dark"] { --bg-main: #0c0e12; --bg-card: #11141b; --border-color: #1f2633; --text-main: #f3f4f6; --text-heading: #ffffff; --accent-purple: #7c3aed; }
-        [data-theme="light"] { --bg-main: #f3f4f6; --bg-card: #ffffff; --border-color: #e5e7eb; --text-main: #1f2937; --text-heading: #111827; --accent-purple: #3b82f6; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); padding: 30px; transition: all 0.3s; }
-        .container { max-width: 1200px; margin: 0 auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        h2 { margin-bottom: 20px; color: var(--text-heading); border-left: 4px solid var(--accent-purple); padding-left: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
-        .btn-approve { background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; }
-        .btn-back { display: inline-block; margin-bottom: 15px; color: var(--text-main); text-decoration: none; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <a href="../dashboard.php" class="btn-back">&larr; Quay lại Dashboard</a>
-    <h2>📂 Duyệt Báo Cáo Cuối Ngày</h2>
+<div class="container" style="max-width: 100%;">
+    <h2>📂 Duyệt Báo Cáo Doanh Số Cuối Ngày</h2>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Duyệt số liệu hiệu suất nhóm nhân sự dưới quyền trực tiếp.</p>
     <table>
         <thead>
-            <tr><th>Ngày</th><th>Nhân viên</th><th>Data</th><th>Đã gọi</th><th>Quan tâm</th><th>MT5</th><th>FTD</th><th>Lot</th><th>Doanh Số</th><th>Trạng thái</th><th>Thao tác</th></tr>
+            <tr>
+                <th>Ngày</th><th>Nhân viên</th><th>Data</th><th>Đã gọi</th><th>Quan tâm</th><th>MT5</th><th>FTD</th><th>Lot</th><th>Doanh Số</th><th>Trạng thái</th><th>Lý do từ chối</th><th>Thao tác</th>
+            </tr>
         </thead>
         <tbody>
-            <?php foreach ($reports as $row): ?>
-            <tr>
-                <td><?= date('d/m/Y', strtotime($row['report_date'])) ?></td>
-                <td style="font-weight: 600; color: var(--text-heading);"><?= htmlspecialchars($row['fullname']) ?></td>
-                <td><?= $row['allocated_data'] ?></td>
-                <td><?= $row['calls_made'] ?></td>
-                <td><?= $row['interested_customers'] ?></td>
-                <td><?= $row['opened_mt5'] ?></td>
-                <td><?= $row['ftd_count'] ?></td>
-                <td><?= $row['lot_size'] ?></td>
-                <td style="font-weight: 600; color: #f59e0b;"><?= number_format($row['revenue']) ?>đ</td>
-                <td style="font-weight: 600; color: <?= $row['status'] === 'Đã duyệt' ? '#10b981' : '#f59e0b' ?>;"><?= $row['status'] ?></td>
-                <td>
-                    <?php if ($row['status'] === 'Chờ duyệt'): ?>
-                        <a href="manage_reports.php?approve_id=<?= $row['id'] ?>" class="btn-approve">✓ Duyệt</a>
-                    <?php else: ?>
-                        <span style="color: #6b7280; font-size:12px;">Đã duyệt</span>
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
+            <?php if (count($reports) === 0): ?>
+                <tr><td colspan="12" style="text-align: center; color: var(--text-muted); padding: 30px;">Nhóm của bạn chưa có báo cáo nào được gửi.</td></tr>
+            <?php else: ?>
+                <?php foreach ($reports as $row): ?>
+                <tr>
+                    <td><?= date('d/m/Y', strtotime($row['report_date'])) ?></td>
+                    <td style="font-weight: 600; color: var(--text-heading);"><?= htmlspecialchars($row['fullname']) ?></td>
+                    <td><?= $row['allocated_data'] ?></td>
+                    <td><?= $row['calls_made'] ?></td>
+                    <td><?= $row['interested_customers'] ?></td>
+                    <td><?= $row['opened_mt5'] ?></td>
+                    <td><?= $row['ftd_count'] ?></td>
+                    <td><?= $row['lot_size'] ?></td>
+                    <td style="font-weight:600; color:var(--color-revenue)"><?= number_format($row['revenue']) ?>đ</td>
+                    
+                    <td style="font-weight:600; color:<?= $row['status']=='Đã duyệt'?'#10b981':($row['status']=='Từ chối'?'#ef4444':'#f59e0b') ?>">
+                        <?= $row['status'] ?>
+                    </td>
+                    
+                    <td style="font-size:12px; color:var(--text-muted); font-style:italic;">
+                        <?= htmlspecialchars($row['reject_reason'] ?? '---') ?>
+                    </td>
+                    
+                    <td>
+                        <?php if ($row['status'] === 'Chờ duyệt'): ?>
+                            <a href="manage_reports.php?approve_id=<?= $row['id'] ?>" class="btn-approve" style="display:inline-block; margin-bottom:4px;">✓ Duyệt</a>
+                            <button onclick="openRejectModal(<?= $row['id'] ?>)" class="btn-reject" style="display:inline-block;">✗ Từ Chối</button>
+                        <?php elseif ($row['status'] === 'Đã duyệt'): ?>
+                            <span style="color: #6b7280; font-size:12px; font-weight:600;">✓ Đã Duyệt</span>
+                        <?php else: ?>
+                            <span style="color: #ef4444; font-size:12px; font-weight:600;">❌ Đã Từ Chối</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 </div>
-</body>
-</html>
+
+<div id="rejectModal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center;">
+    <div class="panel" style="width:100%; max-width:400px; background: var(--bg-card); border-color: #ef4444;">
+        <h3 style="color:#ef4444; margin-bottom:15px;">❌ Lý Do Từ Chối Báo Cáo</h3>
+        <form action="manage_reports.php" method="POST">
+            <input type="hidden" name="action" value="reject_report">
+            <input type="hidden" name="report_id" id="modalReportId">
+            <div class="form-group">
+                <label style="font-size:12px; color:var(--text-muted);">Nhập lý do gửi trả báo cáo:</label>
+                <input type="text" name="reject_reason" required placeholder="Ví dụ: Sai số doanh số thực tế..." style="width:100%;">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="submit" class="btn-reject" style="flex:1;">Gửi Yêu Cầu Sửa</button>
+                <button type="button" onclick="closeRejectModal()" class="theme-btn" style="flex:1; background:rgba(255,255,255,0.05); color:var(--text-main);">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openRejectModal(reportId) {
+    document.getElementById('modalReportId').value = reportId;
+    document.getElementById('rejectModal').style.display = 'flex';
+}
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+}
+</script>
+<?php require_once '../inc/footer.php'; ?>
