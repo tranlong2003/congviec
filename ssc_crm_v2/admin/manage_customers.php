@@ -43,7 +43,6 @@ $all_customers = $stmt->fetchAll();
                         <div>📞 <?= htmlspecialchars($row['phone']) ?></div>
                         <div style="font-size: 12px; color: #3b82f6;">✈️ <?= htmlspecialchars($row['telegram'] ?? 'N/A') ?></div>
                     </td>
-                    <!-- Hiển thị Tuổi và Quê quán ở màn hình Admin -->
                     <td>
                         <div style="font-size: 13px;">🎂 Tuổi: <span style="color:var(--text-heading); font-weight:600;"><?= $row['age'] ?? 'Chưa rõ' ?></span></div>
                         <div style="font-size: 13px; margin-top:4px;">📍 Quê: <span style="color:var(--text-heading); font-weight:600;"><?= htmlspecialchars($row['hometown'] ?? 'Chưa rõ') ?></span></div>
