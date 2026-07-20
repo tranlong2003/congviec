@@ -3,7 +3,6 @@
 session_start();
 require_once 'config/database.php';
 
-// ÉP HỆ THỐNG SỬ DỤNG MÚI GIỜ VIỆT NAM
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 if (!isset($_SESSION['user_id'])) {
@@ -16,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $method = $_POST['method'] ?? 'Wifi Văn Phòng';
     $today = date('Y-m-d');
-    $now = date('H:i:s'); // Giờ chuẩn Việt Nam sau khi đặt timezone
+    $now = date('H:i:s');
     $ip_address = $_SERVER['REMOTE_ADDR'];
 
     try {
